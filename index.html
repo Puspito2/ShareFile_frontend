@@ -1,461 +1,243 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ShareFile Pro Upload</title>
+  <title>ShareDrop Prototype</title>
   <style>
-    /* Reset and basics */
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9fafb;
-      margin: 0; padding: 20px;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      align-items: flex-start;
-      position: relative;
-    }
-    .container {
-      width: 100%;
-      max-width: 600px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      padding: 30px 25px;
-    }
-    h1 {
-      margin-bottom: 25px;
-      text-align: center;
-      font-weight: 700;
-      color: #222;
-    }
-
-    /* Drag & Drop */
-    #drop-area {
-      border: 3px dashed #bbb;
-      border-radius: 12px;
-      padding: 50px 25px;
-      text-align: center;
-      color: #666;
-      cursor: pointer;
-      transition: background-color 0.3s, border-color 0.3s;
-      user-select: none;
-      margin-bottom: 25px;
-      font-size: 18px;
-      line-height: 1.4;
-    }
-    #drop-area.dragover {
-      border-color: #1a73e8;
-      background-color: #e8f0fe;
-      color: #1a73e8;
-    }
-    #fileElem {
-      display: none;
-    }
-
-    /* File list */
-    #file-list {
-      list-style: none;
-      padding-left: 0;
-      max-height: 220px;
-      overflow-y: auto;
-      margin-bottom: 25px;
-    }
-    #file-list li {
-      background: #f6f7f9;
-      padding: 12px 15px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      font-size: 14px;
-      box-shadow: 0 1px 3px rgb(0 0 0 / 0.05);
-    }
-    #file-list .file-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    #file-list .file-name {
-      font-weight: 600;
-      max-width: 75%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    #file-list button.remove-btn {
-      background: #ff4d4f;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      padding: 4px 10px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    #file-list button.remove-btn:hover {
-      background: #d9363e;
-    }
-
-    /* Upload button */
-    #upload-btn {
-      width: 100%;
-      padding: 14px;
-      background-color: #1a73e8;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-weight: 700;
-      font-size: 18px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      user-select: none;
-      margin-bottom: 25px;
-    }
-    #upload-btn:disabled {
-      background-color: #90b7ff;
-      cursor: not-allowed;
-    }
-
-    /* Progress bar */
-    .progress-wrapper {
-      height: 10px;
-      background: #e1e4e8;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 4px;
-      margin-bottom: 8px;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #1a73e8;
-      transition: width 0.3s ease;
-    }
-
-    /* Status message */
-    .status {
-      font-size: 13px;
-      color: #444;
-      margin-top: 0;
-      margin-bottom: 0;
-      word-break: break-word;
-    }
-    .status.success {
-      color: #52c41a;
-    }
-    .status.error {
-      color: #ff4d4f;
-    }
-
-    /* Uploaded links */
-    #uploaded-links {
-      border-top: 1px solid #eee;
-      padding-top: 15px;
-      font-size: 14px;
-    }
-    #uploaded-links h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-weight: 600;
-      color: #222;
-    }
-    #uploaded-links ul {
-      list-style: none;
-      padding-left: 0;
-      margin-top: 0;
-      max-height: 180px;
-      overflow-y: auto;
-    }
-    #uploaded-links li {
-      margin-bottom: 8px;
-      word-break: break-all;
-    }
-    #uploaded-links a {
-      color: #1a73e8;
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-    #uploaded-links a:hover {
-      text-decoration: underline;
-    }
-
-    /* Developer credit footer */
-    #dev-credit {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      font-size: 13px;
-      color: #666;
-      user-select: none;
-      background: rgba(255 255 255 / 0.8);
-      padding: 5px 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 280px;
-      text-align: right;
-      line-height: 1.2;
-    }
-    #dev-credit a {
-      color: #1a73e8;
-      text-decoration: none;
-    }
-    #dev-credit a:hover {
-      text-decoration: underline;
-    }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      .container {
-        padding: 20px 15px;
-      }
-      #drop-area {
-        padding: 30px 15px;
-        font-size: 16px;
-      }
-      #dev-credit {
-        font-size: 11px;
-        max-width: 180px;
-        bottom: 8px;
-        right: 8px;
-      }
-    }
+    body { font-family: Arial, sans-serif; padding: 1rem; }
+    #peers { margin-bottom: 1rem; }
+    #files { margin-top: 1rem; }
+    #log { white-space: pre-wrap; background: #eee; padding: 1rem; height: 150px; overflow-y: scroll; }
+    .peer { cursor: pointer; padding: 0.3rem; border: 1px solid #ccc; margin: 0.2rem 0; }
+    .peer:hover { background: #def; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>ShareFile Pro Upload</h1>
+  <h1>ShareDrop Prototype</h1>
+  <div>Your ID: <span id="myId">-</span></div>
+  <h3>Available Peers (Click to connect)</h3>
+  <div id="peers">Loading...</div>
 
-    <div id="drop-area">
-      Drag & drop files here, or <label for="fileElem" style="color:#1a73e8; cursor:pointer; text-decoration: underline;">browse</label>
-      <input type="file" id="fileElem" multiple />
-    </div>
-
-    <ul id="file-list"></ul>
-
-    <button id="upload-btn" disabled>Upload Files</button>
-
-    <div id="uploaded-links" style="display:none;">
-      <h3>Uploaded Files</h3>
-      <ul id="uploaded-list"></ul>
-    </div>
-  </div>
-
-  <div id="dev-credit">
-    Developed by <strong>Puspito Priyanjon Kar</strong><br />
-    Email: <a href="mailto:priyomkar75@gmail.com">priyomkar75@gmail.com</a>
-  </div>
+  <input type="file" id="fileInput" disabled />
+  <div id="status"></div>
+  <h3>Log</h3>
+  <div id="log"></div>
 
   <script>
-    const dropArea = document.getElementById('drop-area');
-    const fileElem = document.getElementById('fileElem');
-    const fileList = document.getElementById('file-list');
-    const uploadBtn = document.getElementById('upload-btn');
-    const uploadedLinks = document.getElementById('uploaded-links');
-    const uploadedList = document.getElementById('uploaded-list');
+    const logElem = document.getElementById('log');
+    const peersElem = document.getElementById('peers');
+    const myIdElem = document.getElementById('myId');
+    const fileInput = document.getElementById('fileInput');
+    const statusElem = document.getElementById('status');
 
-    let filesToUpload = [];
-
-    // Prevent default drag behaviors
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      dropArea.addEventListener(eventName, preventDefaults, false);
-      document.body.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-      e.preventDefault();
-      e.stopPropagation();
+    function log(msg) {
+      logElem.textContent += msg + '\n';
+      logElem.scrollTop = logElem.scrollHeight;
+      console.log(msg);
     }
 
-    // Highlight drop area on dragover
-    ['dragenter', 'dragover'].forEach(eventName => {
-      dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
-    });
-    ['dragleave', 'drop'].forEach(eventName => {
-      dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
-    });
+    const ws = new WebSocket('ws://localhost:8080'); // Change to your deployed server URL
 
-    // Handle files selected or dropped
-    dropArea.addEventListener('drop', handleDrop, false);
-    fileElem.addEventListener('change', handleFilesSelected, false);
+    let myId = null;
+    let peerConnections = {};
+    let dataChannels = {};
 
-    function handleDrop(e) {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      addFiles(files);
-    }
+    ws.onopen = () => {
+      log('Connected to signaling server');
+    };
 
-    function handleFilesSelected() {
-      const files = this.files;
-      addFiles(files);
-    }
+    ws.onmessage = async (event) => {
+      const data = JSON.parse(event.data);
 
-    function addFiles(newFiles) {
-      for(let i=0; i < newFiles.length; i++) {
-        const file = newFiles[i];
-        if (!filesToUpload.some(f => f.name === file.name && f.size === file.size)) {
-          filesToUpload.push(file);
-        }
+      if (data.type === 'id') {
+        myId = data.id;
+        myIdElem.textContent = myId;
+        log('Assigned ID: ' + myId);
+      } 
+      else if (data.type === 'peers') {
+        updatePeers(data.peers);
       }
-      renderFileList();
-      toggleUploadBtn();
+      else if (data.type === 'signal') {
+        await handleSignal(data.from, data.signal);
+      }
+    };
+
+    function updatePeers(peerIds) {
+      peersElem.innerHTML = '';
+      peerIds.filter(id => id !== myId).forEach(id => {
+        const div = document.createElement('div');
+        div.textContent = id;
+        div.className = 'peer';
+        div.onclick = () => connectToPeer(id);
+        peersElem.appendChild(div);
+      });
+      if (peersElem.innerHTML === '') peersElem.textContent = 'No peers online';
     }
 
-    function renderFileList() {
-      fileList.innerHTML = '';
-      filesToUpload.forEach((file, index) => {
-        const li = document.createElement('li');
+    async function connectToPeer(peerId) {
+      if (peerConnections[peerId]) {
+        log('Already connected to ' + peerId);
+        return;
+      }
 
-        const header = document.createElement('div');
-        header.className = 'file-header';
+      log('Connecting to ' + peerId);
 
-        const fileNameSpan = document.createElement('span');
-        fileNameSpan.className = 'file-name';
-        fileNameSpan.title = file.name;
-        fileNameSpan.textContent = file.name;
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+      peerConnections[peerId] = pc;
 
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-btn';
-        removeBtn.textContent = 'Remove';
-        removeBtn.onclick = () => {
-          filesToUpload.splice(index, 1);
-          renderFileList();
-          toggleUploadBtn();
+      const dc = pc.createDataChannel('fileChannel');
+      dataChannels[peerId] = dc;
+
+      dc.onopen = () => {
+        log('Data channel open with ' + peerId);
+        fileInput.disabled = false;
+        statusElem.textContent = 'Connected to ' + peerId + '. Select a file to send.';
+      };
+
+      dc.onmessage = (event) => {
+        receiveFile(event.data);
+      };
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          ws.send(JSON.stringify({
+            type: 'signal',
+            target: peerId,
+            signal: { candidate: event.candidate }
+          }));
+        }
+      };
+
+      pc.ondatachannel = (event) => {
+        const receiveChannel = event.channel;
+        receiveChannel.onmessage = (e) => {
+          receiveFile(e.data);
+        };
+      };
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      ws.send(JSON.stringify({
+        type: 'signal',
+        target: peerId,
+        signal: { sdp: pc.localDescription }
+      }));
+    }
+
+    async function handleSignal(fromId, signal) {
+      let pc = peerConnections[fromId];
+      if (!pc) {
+        pc = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        });
+        peerConnections[fromId] = pc;
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            ws.send(JSON.stringify({
+              type: 'signal',
+              target: fromId,
+              signal: { candidate: event.candidate }
+            }));
+          }
         };
 
-        header.appendChild(fileNameSpan);
-        header.appendChild(removeBtn);
+        pc.ondatachannel = (event) => {
+          const receiveChannel = event.channel;
+          receiveChannel.onmessage = (e) => {
+            receiveFile(e.data);
+          };
+          dataChannels[fromId] = receiveChannel;
 
-        // Progress bar container
-        const progressWrapper = document.createElement('div');
-        progressWrapper.className = 'progress-wrapper';
+          receiveChannel.onopen = () => {
+            log('Data channel open with ' + fromId);
+            fileInput.disabled = false;
+            statusElem.textContent = 'Connected to ' + fromId + '. Select a file to send.';
+          };
+        };
+      }
 
-        // Progress bar fill
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-
-        progressWrapper.appendChild(progressBar);
-
-        // Status message
-        const statusMsg = document.createElement('p');
-        statusMsg.className = 'status';
-        statusMsg.textContent = 'Ready to upload';
-
-        li.appendChild(header);
-        li.appendChild(progressWrapper);
-        li.appendChild(statusMsg);
-
-        // Attach references for later
-        file.progressBar = progressBar;
-        file.statusMsg = statusMsg;
-
-        fileList.appendChild(li);
-      });
-    }
-
-    function toggleUploadBtn() {
-      uploadBtn.disabled = filesToUpload.length === 0;
-    }
-
-    uploadBtn.addEventListener('click', () => {
-      if (filesToUpload.length === 0) return;
-      uploadedLinks.style.display = 'none';
-      uploadBtn.disabled = true;
-      uploadAllFiles(filesToUpload)
-        .then(() => {
-          uploadBtn.disabled = false;
-        })
-        .catch(() => {
-          uploadBtn.disabled = false;
-        });
-    });
-
-    async function uploadAllFiles(files) {
-      uploadedList.innerHTML = '';
-      uploadedLinks.style.display = 'none';
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        file.statusMsg.textContent = 'Uploading...';
+      if (signal.sdp) {
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+        if (signal.sdp.type === 'offer') {
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          ws.send(JSON.stringify({
+            type: 'signal',
+            target: fromId,
+            signal: { sdp: pc.localDescription }
+          }));
+        }
+      } else if (signal.candidate) {
         try {
-          await uploadSingleFile(file);
-          file.statusMsg.textContent = 'Uploaded successfully!';
-          file.statusMsg.classList.add('success');
-        } catch (err) {
-          file.statusMsg.textContent = 'Error: ' + err.message;
-          file.statusMsg.classList.add('error');
+          await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+        } catch (e) {
+          log('Error adding ICE candidate: ' + e);
         }
       }
-
-      // Show uploaded files links if any
-      const uploadedFiles = files.filter(f => f.statusMsg.classList.contains('success'));
-      if (uploadedFiles.length > 0) {
-        uploadedLinks.style.display = 'block';
-        uploadedFiles.forEach(f => {
-          const li = document.createElement('li');
-          // Construct file URL based on your backend response structure:
-          // Assuming backend serves files under /uploads/filename.ext
-          const url = `https://sharefile-backend-arw6.onrender.com/uploads/${encodeURIComponent(f.name)}`;
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.textContent = f.name;
-          li.appendChild(a);
-          uploadedList.appendChild(li);
-        });
-      }
-
-      // Clear uploaded files from the queue
-      filesToUpload = files.filter(f => !f.statusMsg.classList.contains('success'));
-      renderFileList();
-      toggleUploadBtn();
     }
 
-    function uploadSingleFile(file) {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        const formData = new FormData();
-        formData.append('file', file);
+    // Simple file sending over datachannel - split into chunks
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const peerIds = Object.keys(dataChannels);
+      if (peerIds.length === 0) {
+        alert('No peer connected');
+        return;
+      }
+      const dc = dataChannels[peerIds[0]]; // just send to first connected peer for simplicity
 
-        xhr.open('POST', 'https://sharefile-backend-arw6.onrender.com/upload');
+      const chunkSize = 16 * 1024; // 16KB chunks
+      let offset = 0;
 
-        xhr.upload.addEventListener('progress', e => {
-          if (e.lengthComputable) {
-            const percentComplete = (e.loaded / e.total) * 100;
-            file.progressBar.style.width = percentComplete + '%';
-          }
-        });
+      log(`Sending file: ${file.name} (${file.size} bytes)`);
 
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            try {
-              const resp = JSON.parse(xhr.responseText);
-              if (resp.error) {
-                reject(new Error(resp.error));
-              } else {
-                resolve(resp);
-              }
-            } catch (err) {
-              reject(new Error('Invalid server response'));
-            }
-          } else {
-            reject(new Error('Upload failed with status ' + xhr.status));
-          }
-        };
+      const reader = new FileReader();
 
-        xhr.onerror = () => {
-          reject(new Error('Upload failed due to network error'));
-        };
+      reader.onload = e => {
+        dc.send(e.target.result);
+        offset += e.target.result.byteLength;
+        if (offset < file.size) {
+          readSlice(offset);
+        } else {
+          log('File sent successfully!');
+        }
+      };
 
-        xhr.send(formData);
-      });
+      function readSlice(o) {
+        const slice = file.slice(offset, o + chunkSize);
+        reader.readAsArrayBuffer(slice);
+      }
+
+      readSlice(0);
+    });
+
+    // For simplicity, just collect received chunks in an array and create a blob
+    let receivedBuffers = [];
+    function receiveFile(data) {
+      receivedBuffers.push(data);
+      log(`Received chunk (${data.byteLength || data.length} bytes)`);
+
+      // Naive approach: after receiving some data, create blob and download automatically
+      // In real app, implement protocol to signal file start/end, file name, etc.
+
+      // Here we download after 10 chunks or size > 1MB for demo
+      const totalSize = receivedBuffers.reduce((acc, cur) => acc + cur.byteLength || cur.length, 0);
+      if (receivedBuffers.length >= 10 || totalSize > 1_000_000) {
+        const blob = new Blob(receivedBuffers);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'received_file';
+        a.click();
+        URL.revokeObjectURL(url);
+        receivedBuffers = [];
+        log('File downloaded');
+      }
     }
   </script>
 </body>
